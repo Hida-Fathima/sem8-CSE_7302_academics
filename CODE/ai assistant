@@ -1,0 +1,25 @@
+import ollama
+from security import sanitize_input
+
+def analyze_threat(log):
+    """
+    Uses Llama3 to provide a narrative summary of the threat.
+    """
+    clean_payload = sanitize_input(log['payload'])
+    
+    prompt = (
+        f"Analyze this security log.\n"
+        f"Signature: {log['signature']}\n"
+        f"Payload: {clean_payload}\n"
+        f"Source IP: {log['source_ip']}\n\n"
+        "Provide a concise JSON response with: 'verdict' (Real Threat/False Positive), "
+        "'summary' (1 sentence), and 'remediation' (1 action)."
+    )
+
+    try:
+        response = ollama.chat(model='llama3', messages=[
+            {'role': 'user', 'content': prompt}
+        ])
+        return response['message']['content']
+    except Exception:
+        return "AI Module Offline or Busy."
